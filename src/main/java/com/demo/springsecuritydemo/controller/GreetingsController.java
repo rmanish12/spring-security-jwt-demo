@@ -6,6 +6,8 @@ import com.demo.springsecuritydemo.service.JwtService;
 import com.demo.springsecuritydemo.service.UserInfoAdditionalService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,6 +41,12 @@ public class GreetingsController {
 
     @GetMapping("/user/test")
     public String userEndPoint() {
+        // fetching current request authentication details
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println(authentication.getPrincipal()); // will return the principal set to security context
+        System.out.println(authentication.getName()); // will return the user's username/email
+        System.out.println(authentication.getCredentials()); // will return user's credential if set
+        System.out.println(authentication.getAuthorities()); // will return user's roles/permissions
         return "USER ENDPOINT";
     }
 }

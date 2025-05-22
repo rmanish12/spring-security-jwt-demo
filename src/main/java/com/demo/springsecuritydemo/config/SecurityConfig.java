@@ -11,10 +11,10 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,6 +26,7 @@ public class SecurityConfig {
 
     private JwtFilter jwtFilter;
     private UserDetailsService userDetailsService;
+    private AuthenticationEntryPoint entryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -33,7 +34,7 @@ public class SecurityConfig {
         // MAIN security configuration
         // Defines endpoint access rules and JWT filter setup
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF, not needed for stateless JWT
+                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF, not needed for stateless JWT
                 .authorizeHttpRequests(auth ->
                         auth
                                 .requestMatchers("/auth/welcome", "/auth/addNewUser", "/auth/generateToken")
@@ -43,6 +44,8 @@ public class SecurityConfig {
                                 .anyRequest() // all other endpoints are authenticated
                                 .authenticated()
                         )
+                .exceptionHandling(exHandling -> exHandling.authenticationEntryPoint(entryPoint))
+
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))         // stateless session, required for JWT
                 .authenticationProvider(authenticationProvider()) // custom authentication provider
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // add jwt filter before Spring Security custom filter
